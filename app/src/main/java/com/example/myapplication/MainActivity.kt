@@ -96,6 +96,8 @@ class MainActivity : ComponentActivity() {
         var prmsRzt3 = ContextCompat.checkSelfPermission(this, READ_MEDIA_IMAGES)
 
         req_auth_contactV2(this, ::rdContack);
+
+        req_auth_contactV3(this, ::rdContack);
         //             wrtFile()
     }
 
@@ -144,6 +146,44 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
+    private fun req_auth_contactV3(mainActivity: MainActivity, kFunction0: () -> Unit) {
+
+        //  官方新封装的权限申请代码还是挺好的，无需咱们再自己处理 onRequestPermissionsResult 中的回调信息。
+        val requestPermissionLauncher =
+            registerForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { isGranted: Boolean ->
+                if (isGranted) {
+// 同意
+                    kFunction0();
+                } else {
+// 拒绝
+                }
+            }
+
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_PHONE_NUMBERS
+            ) == PackageManager.PERMISSION_GRANTED -> {
+// 当前拥有这个权限
+                kFunction0();
+            }
+
+            shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
+// 告诉用户为啥要申请这个权限
+            }
+
+            else -> {
+// 申请权限 这个执行了，但是不知道为什么没有反应
+                requestPermissionLauncher.launch(
+                    Manifest.permission.READ_PHONE_NUMBERS
+                )
+            }
+        }
+
+    }
     private fun req_auth_contactV2(mainActivity: MainActivity, kFunction0: () -> Unit) {
 
       //  官方新封装的权限申请代码还是挺好的，无需咱们再自己处理 onRequestPermissionsResult 中的回调信息。
