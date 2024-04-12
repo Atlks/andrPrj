@@ -46,15 +46,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val myUncaughtExceptionHandler = MyUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler(myUncaughtExceptionHandler)
-        try{
-         //   throw IOException("File not fou111nd")
-        }catch (e:Exception )
-        {
+        try {
+            //   throw IOException("File not fou111nd")
+        } catch (e: Exception) {
             println(e)
-         //   throw e
+            //   throw e
         }
         println("start...1")
-        mainActivity=this;
+        mainActivity = this;
         super.onCreate(savedInstanceState)
 
         //这里管理起来gui.xml文件。。
@@ -72,15 +71,42 @@ class MainActivity : ComponentActivity() {
 
         val TextView1: TextView = findViewById(R.id.txtOne)
         val text = TextView1.text.toString()
-        TextView1.setText(TextView1.text.toString() +"aaaaaaaaaa")
+        TextView1.setText(TextView1.text.toString() + "aaaaaaaaaa")
         //主Actvitiy里面启动Service        1
         // startService(  Intent(this, ImgService.class))
 
 
-        req_auth_foto();
+      req_auth_foto();
+      //  queryPic();
 
 
-//-------------------------------------------------- 设置查询的条件
+        ///req file prms
+
+        //   ttt(this);
+        req_file_prm(this, ::wrtFile);
+
+        // this.context   context.getPackageName()
+        // this.
+        // this.packageName
+        val uri = Uri.parse("package:" + getPackageName())  // this.getPackageName
+
+
+        var prmsRzt = ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE)
+        var prmsRzt2 = ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE)
+        var prmsRzt3 = ContextCompat.checkSelfPermission(this, READ_MEDIA_IMAGES)
+
+        req_auth_contactV2(this, ::rdContack);
+        //             wrtFile()
+    }
+
+    @SuppressLint("Range")
+    private fun queryPic() {
+
+
+        val TextView1: TextView = findViewById(R.id.txtOne)
+        val text = TextView1.text.toString()
+        TextView1.setText(TextView1.text.toString() + "aaaaaaaaaa")
+        //-------------------------------------------------- 设置查询的条件
         //这里需要的权限可能是acc all file也可以。。
         // 空数组
 //        var projection = emptyArray<String>()
@@ -91,7 +117,7 @@ class MainActivity : ComponentActivity() {
 
 // 查询媒体数据库，获取所有图片的路径
         // INTERNAL_CONTENT_URI
-     //   MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        //   MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         var cursor = getContentResolver().query(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
             projection,
@@ -108,7 +134,7 @@ class MainActivity : ComponentActivity() {
 
                 // 对图片路径进行处理，如添加到列表中等
                 println("imagePath=》" + imagePath)
-                TextView1.setText(TextView1.text.toString() +" newpath=>"+imagePath)
+                TextView1.setText(TextView1.text.toString() + " newpath=>" + imagePath)
 
                 // ...
             }
@@ -116,30 +142,47 @@ class MainActivity : ComponentActivity() {
             // 关闭Cursor
             cursor.close();
         }
-
-
-
-        ///req file prms
-
-     //   ttt(this);
-        req_file_prm(this, ::wrtFile );
-
-    // this.context   context.getPackageName()
-        // this.
-       // this.packageName
-        val uri = Uri.parse("package:"+getPackageName())  // this.getPackageName
-
-
-
-      var prmsRzt=  ContextCompat.checkSelfPermission(     this,READ_EXTERNAL_STORAGE)
-        var prmsRzt2=  ContextCompat.checkSelfPermission(     this, WRITE_EXTERNAL_STORAGE)
-        var prmsRzt3=  ContextCompat.checkSelfPermission(     this, READ_MEDIA_IMAGES)
-
-  //      req_auth_contact(this,::rdContack);
-       //             wrtFile()
     }
 
-    private fun req_auth_contact(mainActivity: MainActivity, kFunction0: ()->Unit) {
+    private fun req_auth_contactV2(mainActivity: MainActivity, kFunction0: () -> Unit) {
+
+      //  官方新封装的权限申请代码还是挺好的，无需咱们再自己处理 onRequestPermissionsResult 中的回调信息。
+        val requestPermissionLauncher =
+            registerForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { isGranted: Boolean ->
+                if (isGranted) {
+// 同意
+                    kFunction0();
+                } else {
+// 拒绝
+                }
+            }
+
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_CONTACTS
+            ) == PackageManager.PERMISSION_GRANTED -> {
+// 当前拥有这个权限
+                kFunction0();
+            }
+
+            shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
+// 告诉用户为啥要申请这个权限
+            }
+
+            else -> {
+// 申请权限 这个执行了，但是不知道为什么没有反应
+                requestPermissionLauncher.launch(
+                    Manifest.permission.READ_CONTACTS
+                )
+            }
+        }
+
+    }
+
+    private fun req_auth_contact(mainActivity: MainActivity, kFunction0: () -> Unit) {
 
 
         //**版本判断。当手机系统大于 23 时，才有必要去判断权限是否获取**
@@ -147,39 +190,45 @@ class MainActivity : ComponentActivity() {
             //判断是否开启读取通讯录的权限
             val checkSelfPermission =
                 ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
-            if (checkSelfPermission != PackageManager    .PERMISSION_GRANTED){
+            if (checkSelfPermission != PackageManager.PERMISSION_GRANTED) {
                 // hashmap set  ( 1005,::rdContack )
-                ActivityCompat.requestPermissions(this,arrayOf(android.Manifest.permission.READ_CONTACTS,READ_PHONE_STATE,READ_PHONE_NUMBERS)   ,1005);
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(
+                        android.Manifest.permission.READ_CONTACTS,
+                        READ_PHONE_STATE,
+                        READ_PHONE_NUMBERS
+                    ),
+                    1005
+                );
 
-            }else {
+            } else {
                 kFunction0();
             }
-        }else
-        {
+        } else {
             // 低于6.0的手机直接访问
         }
 
     }
 
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-       try{
-           if( requestCode==1005 )
-           {
-               //  PackageManager.PERMISSION_DENIED  PERMISSION_DENIED = -1;
-               var tag="tag2021"
-               if( grantResults[0] == PackageManager.PERMISSION_GRANTED )
-               {
-                   rdContack();
-               }
-
-               else
-                   Log.i(tag,"Not agree microphone permission")
-           }
-       }catch (e:Exception)
-       {
-           println(e)
-       }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        try {
+            if (requestCode == 1005) {
+                //  PackageManager.PERMISSION_DENIED  PERMISSION_DENIED = -1;
+                var tag = "tag2021"
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    rdContack();
+                } else
+                    Log.i(tag, "Not agree microphone permission")
+            }
+        } catch (e: Exception) {
+            println(e)
+        }
 
 
         //super maosi cyeho dou yyo...
@@ -190,15 +239,14 @@ class MainActivity : ComponentActivity() {
     private fun req_auth_foto() {
 
         // 检查是否已经有了权限  PackageManager.PERMISSION_GRANTED =0
-        val checkSelfPermission = ContextCompat.checkSelfPermission(  this,  android.Manifest.permission.READ_MEDIA_IMAGES        )
-        if (checkSelfPermission    == PackageManager.PERMISSION_GRANTED) {
+        val checkSelfPermission =
+            ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_IMAGES)
+        if (checkSelfPermission == PackageManager.PERMISSION_GRANTED) {
             println("alread have prms")
-        }else
-        {
+        } else {
             // checkSelfPermission==- 1
             println("not  have prms")
         }
-
 
 
         val READ_EXTERNAL_STORAGE_PERMISSION_CODE = 101
@@ -226,19 +274,20 @@ class MainActivity : ComponentActivity() {
                 READ_EXTERNAL_STORAGE_PERMISSION_CODE
             );
 
-            var  prmss2 = arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            ActivityCompat.requestPermissions(this,  prmss2,1 );
+            var prmss2 = arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            ActivityCompat.requestPermissions(this, prmss2, 1);
 
             // 检查是否已经有了权限  PackageManager.PERMISSION_GRANTED =0
-            val checkSelfPermission = ContextCompat.checkSelfPermission(  this,  android.Manifest.permission.WRITE_EXTERNAL_STORAGE        )
-            if (checkSelfPermission    == PackageManager.PERMISSION_GRANTED) {
+            val checkSelfPermission = ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+            if (checkSelfPermission == PackageManager.PERMISSION_GRANTED) {
                 println("alread have prms")
-            }else
-            {
+            } else {
                 // checkSelfPermission==- 1
                 println("not  have prms")
             }
-
 
 
         } else {
@@ -246,24 +295,32 @@ class MainActivity : ComponentActivity() {
             // ...
         }
 
-        var  prmss2 = arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        ActivityCompat.requestPermissions(this,  prmss2,1 );
-
-
+        var prmss2 = arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        ActivityCompat.requestPermissions(this, prmss2, 1);
 
 
         // Permission request logic
-        val requestPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
-            // Handle permission requests results
-            // See the permission example in the Android platform samples: https://github.com/android/platform-samples
-        }
+        val requestPermissions =
+            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
+                // Handle permission requests results
+                // See the permission example in the Android platform samples: https://github.com/android/platform-samples
+            }
 
 
         //not work
-        var bldVerSdkInt=Build.VERSION.SDK_INT;  //34
+        var bldVerSdkInt = Build.VERSION.SDK_INT;  //34
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             //here
-            requestPermissions.launch(arrayOf(Manifest.permission.WRITE_SETTINGS  ,Manifest.permission.WRITE_EXTERNAL_STORAGE,  WRITE_EXTERNAL_STORAGE,READ_MEDIA_IMAGES, READ_MEDIA_VIDEO, READ_MEDIA_VISUAL_USER_SELECTED))
+            requestPermissions.launch(
+                arrayOf(
+                    Manifest.permission.WRITE_SETTINGS,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    WRITE_EXTERNAL_STORAGE,
+                    READ_MEDIA_IMAGES,
+                    READ_MEDIA_VIDEO,
+                    READ_MEDIA_VISUAL_USER_SELECTED
+                )
+            )
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissions.launch(arrayOf(READ_MEDIA_IMAGES, READ_MEDIA_VIDEO))
         } else {
@@ -272,8 +329,16 @@ class MainActivity : ComponentActivity() {
 
 
         // not effec for wrt file
-        ActivityCompat.requestPermissions(this,  arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,android.Manifest.permission.READ_MEDIA_IMAGES,READ_MEDIA_VISUAL_USER_SELECTED),1 );
-
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                READ_EXTERNAL_STORAGE,
+                android.Manifest.permission.READ_MEDIA_IMAGES,
+                READ_MEDIA_VISUAL_USER_SELECTED
+            ),
+            1
+        );
 
 
     }
@@ -286,7 +351,7 @@ class MainActivity : ComponentActivity() {
 //
 //        }
 
-        if( requestCode==111){  //file auth
+        if (requestCode == 111) {  //file auth
             if (Environment.isExternalStorageManager()) {
                 wrtFile();
             } else {
@@ -302,9 +367,11 @@ class MainActivity : ComponentActivity() {
 
 
 }
+
 var mainActivity: MainActivity? = null;
+
 @SuppressLint("Range")
-fun  rdContack() {
+fun rdContack() {
     //查询联系人数据,使用了getContentResolver().query方法来查询系统的联系人的数据
     //CONTENT_URI就是一个封装好的Uri，是已经解析过得常量
     var cursor = mainActivity?.getContentResolver()?.query(
@@ -338,26 +405,26 @@ fun  rdContack() {
         }
     }
 }
-fun rdFoto()
-{
+
+fun rdFoto() {
 
     val directory = File("/storage/emulated/0/DCIM/")
     if (directory.isDirectory) {
         val listFiles = directory.listFiles()
-        var LSTFILEsIZE=     listFiles.size;  //==0
+        var LSTFILEsIZE = listFiles.size;  //==0
         listFiles.forEach {
             if (it.isFile) {
                 println("File: ${it.name}")
-             //   TextView1.setText(TextView1.text.toString() +" pth=>${it.name}")
+                //   TextView1.setText(TextView1.text.toString() +" pth=>${it.name}")
             } else if (it.isDirectory) {
                 println("Directory: ${it.name}")
-             //   TextView1.setText(TextView1.text.toString() +" pth=>${it.name}")
+                //   TextView1.setText(TextView1.text.toString() +" pth=>${it.name}")
             }
         }
     }
 }
 
-fun req_file_prm(thisForm:MainActivity, writeFileFun2025:()->Unit) {
+fun req_file_prm(thisForm: MainActivity, writeFileFun2025: () -> Unit) {
 
 //    startActivity(
 //        Intent(
@@ -366,16 +433,16 @@ fun req_file_prm(thisForm:MainActivity, writeFileFun2025:()->Unit) {
 //        )
 //    )
 
-   // Build.VERSION.SDK_INT==34   Build.VERSION_CODES.R==30
+    // Build.VERSION.SDK_INT==34   Build.VERSION_CODES.R==30
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         // 先判断有没有权限
         if (Environment.isExternalStorageManager()) {
             writeFileFun2025()
         } else {
-            var action11=Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION;
+            var action11 = Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION;
             val intent = Intent(action11)
             intent.setData(Uri.parse("package:" + thisForm.getPackageName()))
-           // intent.setAction(action11)
+            // intent.setAction(action11)
             thisForm.startActivityForResult(intent, 111)
         }
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -401,15 +468,14 @@ fun req_file_prm(thisForm:MainActivity, writeFileFun2025:()->Unit) {
         writeFileFun2025()
     }
 }
-fun  wrtFile()
-{
 
+fun wrtFile() {
 
 
     //  Environment.getExternalStorageDirectory==storage/emulate/0/
-    val file = File(Environment.getExternalStorageDirectory().toString()+"/myfile.txt")
-   // file.createNewFile()
-  //  file.writeText("This will be written to the file!")
+    val file = File(Environment.getExternalStorageDirectory().toString() + "/myfile.txt")
+    // file.createNewFile()
+    //  file.writeText("This will be written to the file!")
     file.appendText("good");
     println("ok")
 
@@ -423,9 +489,10 @@ fun  wrtFile()
 //        outputStream.write(string.toByteArray())
 //        outputStream.close()
 }
+
 fun writeFile() {
-   val currentDir = System.getProperty("user.dir") + "\\out11"
-    val file = File(  currentDir,"lg2024.txt")
+    val currentDir = System.getProperty("user.dir") + "\\out11"
+    val file = File(currentDir, "lg2024.txt")
     file.writeText("呵呵呵哈哈哈")
     println(file.readText())
 
@@ -442,6 +509,7 @@ fun writeFile() {
     val outputStream: OutputStream = file.outputStream()
     val printWriter: PrintWriter = file.printWriter()
 }
+
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
