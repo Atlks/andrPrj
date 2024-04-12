@@ -6,6 +6,8 @@ import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.READ_MEDIA_IMAGES
 import android.Manifest.permission.READ_MEDIA_VIDEO
 import android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+import android.Manifest.permission.READ_PHONE_NUMBERS
+import android.Manifest.permission.READ_PHONE_STATE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -14,8 +16,10 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.ContactsContract
 import android.provider.MediaStore
 import android.provider.Settings
+import android.util.Log
 import android.webkit.WebView
 import android.widget.TextView
 import androidx.activity.ComponentActivity
@@ -30,6 +34,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import java.io.File
+import java.io.IOException
 import java.io.OutputStream
 import java.io.PrintWriter
 import java.io.Writer
@@ -39,8 +44,17 @@ class MainActivity : ComponentActivity() {
 
     @SuppressLint("Range")
     override fun onCreate(savedInstanceState: Bundle?) {
-
+        val myUncaughtExceptionHandler = MyUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler(myUncaughtExceptionHandler)
+        try{
+         //   throw IOException("File not fou111nd")
+        }catch (e:Exception )
+        {
+            println(e)
+         //   throw e
+        }
         println("start...1")
+        mainActivity=this;
         super.onCreate(savedInstanceState)
 
         //这里管理起来gui.xml文件。。
@@ -121,9 +135,57 @@ class MainActivity : ComponentActivity() {
         var prmsRzt2=  ContextCompat.checkSelfPermission(     this, WRITE_EXTERNAL_STORAGE)
         var prmsRzt3=  ContextCompat.checkSelfPermission(     this, READ_MEDIA_IMAGES)
 
-
+  //      req_auth_contact(this,::rdContack);
        //             wrtFile()
     }
+
+    private fun req_auth_contact(mainActivity: MainActivity, kFunction0: ()->Unit) {
+
+
+        //**版本判断。当手机系统大于 23 时，才有必要去判断权限是否获取**
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            //判断是否开启读取通讯录的权限
+            val checkSelfPermission =
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
+            if (checkSelfPermission != PackageManager    .PERMISSION_GRANTED){
+                // hashmap set  ( 1005,::rdContack )
+                ActivityCompat.requestPermissions(this,arrayOf(android.Manifest.permission.READ_CONTACTS,READ_PHONE_STATE,READ_PHONE_NUMBERS)   ,1005);
+
+            }else {
+                kFunction0();
+            }
+        }else
+        {
+            // 低于6.0的手机直接访问
+        }
+
+    }
+
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+       try{
+           if( requestCode==1005 )
+           {
+               //  PackageManager.PERMISSION_DENIED  PERMISSION_DENIED = -1;
+               var tag="tag2021"
+               if( grantResults[0] == PackageManager.PERMISSION_GRANTED )
+               {
+                   rdContack();
+               }
+
+               else
+                   Log.i(tag,"Not agree microphone permission")
+           }
+       }catch (e:Exception)
+       {
+           println(e)
+       }
+
+
+        //super maosi cyeho dou yyo...
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
 
     private fun req_auth_foto() {
 
@@ -224,11 +286,14 @@ class MainActivity : ComponentActivity() {
 //
 //        }
 
-        if (Environment.isExternalStorageManager()) {
-            wrtFile();
-        } else {
-          //  ToastUtils.show("存储权限获取失败")
+        if( requestCode==111){  //file auth
+            if (Environment.isExternalStorageManager()) {
+                wrtFile();
+            } else {
+                //  ToastUtils.show("存储权限获取失败")
+            }
         }
+
     }
 
     private fun ttt(mainActivity: MainActivity) {
@@ -237,7 +302,42 @@ class MainActivity : ComponentActivity() {
 
 
 }
+var mainActivity: MainActivity? = null;
+@SuppressLint("Range")
+fun  rdContack() {
+    //查询联系人数据,使用了getContentResolver().query方法来查询系统的联系人的数据
+    //CONTENT_URI就是一个封装好的Uri，是已经解析过得常量
+    var cursor = mainActivity?.getContentResolver()?.query(
+        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+        null,
+        null,
+        null,
+        null
+    );
+    //对cursor进行遍历，取出姓名和电话号码
+    if (cursor != null) {
+        while (cursor.moveToNext()) {
+            //获取联系人姓名
+            var displayName = cursor.getString(
+                cursor.getColumnIndex(
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME
+                )
+            );
+            // cursor.getColumnIndex("display_name")
+            //获取联系人手机号
+            var number = cursor.getString(
+                cursor.getColumnIndex(
+                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                )
+            );
+            //把取出的两类数据进行拼接，中间加换行符，然后添加到listview中
+            //  contactsList.add(displayName+"\n"+number);
 
+            val TextView1: TextView? = mainActivity?.findViewById(R.id.txtOne)
+            TextView1?.setText(TextView1.text.toString() + " 联系人=>" + displayName + "\n" + number)
+        }
+    }
+}
 fun rdFoto()
 {
 

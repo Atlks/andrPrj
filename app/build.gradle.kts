@@ -56,6 +56,12 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    val fragment_version = "1.6.2"
+    // Kotlin
+    implementation("androidx.fragment:fragment-ktx:$fragment_version")
+    // Testing Fragments in Isolation
+    debugImplementation("androidx.fragment:fragment-testing:$fragment_version")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
