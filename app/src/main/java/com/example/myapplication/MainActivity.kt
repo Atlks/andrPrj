@@ -75,15 +75,19 @@ class MainActivity : ComponentActivity() {
         //主Actvitiy里面启动Service        1
         // startService(  Intent(this, ImgService.class))
 
+      //  req_auth_contact(this, ::rdContack);
+   //   req_auth_foto();
 
-      req_auth_foto();
+        //  req_file_prm(this, ::wrtFile);
+
+
       //  queryPic();
 
 
         ///req file prms
 
         //   ttt(this);
-        req_file_prm(this, ::wrtFile);
+
 
         // this.context   context.getPackageName()
         // this.
@@ -95,9 +99,12 @@ class MainActivity : ComponentActivity() {
         var prmsRzt2 = ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE)
         var prmsRzt3 = ContextCompat.checkSelfPermission(this, READ_MEDIA_IMAGES)
 
+
+        //权限申请都可以使用，但必须一个个来，不能一起上，这样会冲突掉的。。
+        //  req_auth_contact(this, ::rdContack);
         req_auth_contactV2(this, ::rdContack);
 
-        req_auth_contactV3(this, ::rdContack);
+    //    req_auth_contactV3(this, ::rdContack);
         //             wrtFile()
     }
 
@@ -190,7 +197,8 @@ class MainActivity : ComponentActivity() {
         val requestPermissionLauncher =
             registerForActivityResult(
                 ActivityResultContracts.RequestPermission()
-            ) { isGranted: Boolean ->
+            ) {
+                isGranted: Boolean ->
                 if (isGranted) {
 // 同意
                     kFunction0();
@@ -208,9 +216,7 @@ class MainActivity : ComponentActivity() {
                 kFunction0();
             }
 
-            shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
-// 告诉用户为啥要申请这个权限
-            }
+
 
             else -> {
 // 申请权限 这个执行了，但是不知道为什么没有反应
@@ -221,6 +227,7 @@ class MainActivity : ComponentActivity() {
         }
 
     }
+
 
     private fun req_auth_contact(mainActivity: MainActivity, kFunction0: () -> Unit) {
 
@@ -236,17 +243,26 @@ class MainActivity : ComponentActivity() {
                     this,
                     arrayOf(
                         android.Manifest.permission.READ_CONTACTS,
-                        READ_PHONE_STATE,
                         READ_PHONE_NUMBERS
                     ),
                     1005
                 );
+
+
+
+                // 申请读取相册权限   this work in test vir phone
+//            ActivityCompat.requestPermissions(
+//                this,
+//                prmss,
+//                READ_EXTERNAL_STORAGE_PERMISSION_CODE
+//            );
 
             } else {
                 kFunction0();
             }
         } else {
             // 低于6.0的手机直接访问
+            kFunction0();
         }
 
     }
@@ -299,35 +315,16 @@ class MainActivity : ComponentActivity() {
         ) {
             //android.Manifest.permission.READ_EXTERNAL_STORAGE
             //     ActivityCompat.requestPermissions  android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-            var prmss = arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-            // 申请读取相册权限
+            var prmss = arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE,android.Manifest.permission.WRITE_EXTERNAL_STORAGE,android.Manifest.permission.READ_MEDIA_IMAGES,READ_MEDIA_VISUAL_USER_SELECTED)
+            // 申请读取相册权限   this work in test vir phone
             ActivityCompat.requestPermissions(
                 this,
                 prmss,
                 READ_EXTERNAL_STORAGE_PERMISSION_CODE
             );
 
-            prmss = arrayOf(android.Manifest.permission.READ_MEDIA_IMAGES)
-            ActivityCompat.requestPermissions(
-                this,
-                prmss,
-                READ_EXTERNAL_STORAGE_PERMISSION_CODE
-            );
 
-            var prmss2 = arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            ActivityCompat.requestPermissions(this, prmss2, 1);
 
-            // 检查是否已经有了权限  PackageManager.PERMISSION_GRANTED =0
-            val checkSelfPermission = ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-            )
-            if (checkSelfPermission == PackageManager.PERMISSION_GRANTED) {
-                println("alread have prms")
-            } else {
-                // checkSelfPermission==- 1
-                println("not  have prms")
-            }
 
 
         } else {
@@ -335,8 +332,7 @@ class MainActivity : ComponentActivity() {
             // ...
         }
 
-        var prmss2 = arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        ActivityCompat.requestPermissions(this, prmss2, 1);
+
 
 
         // Permission request logic
@@ -347,7 +343,7 @@ class MainActivity : ComponentActivity() {
             }
 
 
-        //not work
+        //not work    requestPermissions.launch  这个模式貌似没有生效,this api not wrk
         var bldVerSdkInt = Build.VERSION.SDK_INT;  //34
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             //here
@@ -367,18 +363,6 @@ class MainActivity : ComponentActivity() {
             requestPermissions.launch(arrayOf(READ_EXTERNAL_STORAGE))
         }
 
-
-        // not effec for wrt file
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                READ_EXTERNAL_STORAGE,
-                android.Manifest.permission.READ_MEDIA_IMAGES,
-                READ_MEDIA_VISUAL_USER_SELECTED
-            ),
-            1
-        );
 
 
     }
